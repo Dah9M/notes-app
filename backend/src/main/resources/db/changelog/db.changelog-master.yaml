@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - include:
+      file: changes/001-users.sql
+      relativeToChangelogFile: true
+  - include:
+      file: changes/002-tags.sql
+      relativeToChangelogFile: true
+  - include:
+      file: changes/003-notes.sql
+      relativeToChangelogFile: true
+  - include:
+      file: changes/004-note-tags.sql
+      relativeToChangelogFile: true

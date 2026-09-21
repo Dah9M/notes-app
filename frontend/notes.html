@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Мои заметки — Notes App</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>Notes App</h1>
+    <div>
+      <span id="current-username"></span>
+      <button id="logout-btn" class="secondary">Выйти</button>
+    </div>
+  </header>
+
+  <main>
+    <form id="note-form">
+      <label for="form-title">Заголовок</label>
+      <input type="text" id="form-title" required maxlength="256">
+
+      <label for="form-content">Текст</label>
+      <textarea id="form-content"></textarea>
+
+      <label for="form-tags">Теги (через запятую)</label>
+      <input type="text" id="form-tags" placeholder="работа, идеи">
+
+      <div class="error" id="form-error"></div>
+
+      <div class="form-actions">
+        <button type="submit" id="form-submit">Создать заметку</button>
+        <button type="button" id="form-cancel" class="secondary" hidden>Отмена</button>
+      </div>
+    </form>
+
+    <hr>
+
+    <div class="toolbar">
+      <input type="text" id="tag-filter" placeholder="Фильтр по тегу">
+      <button id="filter-btn" class="secondary">Найти</button>
+      <button id="filter-clear" class="secondary">Сбросить</button>
+    </div>
+
+    <div id="notes-list"></div>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/notes.js"></script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Регистрация — Notes App</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="auth-card">
+    <h1>Регистрация</h1>
+    <form id="register-form">
+      <label for="username">Логин</label>
+      <input type="text" id="username" required minlength="3" maxlength="64" autocomplete="username">
+
+      <label for="password">Пароль</label>
+      <input type="password" id="password" required minlength="3" maxlength="128" autocomplete="new-password">
+
+      <div class="error" id="error"></div>
+
+      <div class="form-actions">
+        <button type="submit">Создать аккаунт</button>
+      </div>
+    </form>
+    <p class="hint">Уже есть аккаунт? <a href="login.html">Войти</a></p>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    if (getUserId()) {
+      window.location.href = "notes.html";
+    }
+
+    document.getElementById("register-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+      const errorEl = document.getElementById("error");
+      errorEl.textContent = "";
+      try {
+        await register(username, password);
+        window.location.href = "notes.html";
+      } catch (err) {
+        errorEl.textContent = err.message;
+      }
+    });
+  </script>
+</body>
+</html>
