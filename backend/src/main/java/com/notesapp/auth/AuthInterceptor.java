@@ -18,6 +18,12 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        // CORS preflight — браузер шлёт его без кастомных заголовков (в т.ч. без X-User-Id),
+        // поэтому не должен блокироваться проверкой авторизации.
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            return true;
+        }
+
         String header = request.getHeader(USER_ID_HEADER);
         Long userId = parse(header);
 
