@@ -13,8 +13,6 @@ services:
       timeout: 5s
       retries: 10
 
-  # Административная задача (Liquibase-миграции) — отдельный одноразовый процесс,
-  # тем же changelog'ом и той же конфигурацией БД, что у backend, но не встроен в его старт.
   migrate:
     image: liquibase/liquibase:4.27
     volumes:

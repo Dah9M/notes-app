@@ -36,8 +36,6 @@ public class Note {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    // EAGER: список заметок сериализуется в JSON сразу после чтения из репозитория,
-    // без этого Note.tags за закрытой транзакцией ловил бы LazyInitializationException.
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "note_tags",

@@ -19,8 +19,6 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<Map<String, Object>> handleApiException(ApiException ex) {
-        // Само событие (что именно не так) уже залогировано в месте возникновения —
-        // здесь просто конвертация в HTTP-ответ, повторно логировать не нужно.
         return ResponseEntity.status(ex.getStatus()).body(body(ex.getStatus(), ex.getMessage()));
     }
 
@@ -34,9 +32,6 @@ public class ApiExceptionHandler {
         return ResponseEntity.badRequest().body(body(HttpStatus.BAD_REQUEST, message));
     }
 
-    // Ключевая точка: любое непредвиденное исключение, не пойманное явно выше,
-    // должно попасть в лог на уровне ERROR со стектрейсом — это то, на чём будет
-    // строиться алертинг в следующем ДЗ курса.
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleUnexpected(Exception ex) {
         log.error("Необработанное исключение при обработке запроса", ex);

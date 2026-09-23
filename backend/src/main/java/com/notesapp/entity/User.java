@@ -21,7 +21,6 @@ public class User {
     @Column(nullable = false, unique = true, length = 64)
     private String username;
 
-    // Упрощение: пароль хранится как есть, без хеширования — задание не про security.
     @Column(nullable = false, length = 128)
     private String password;
 

@@ -13,12 +13,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.UUID;
 
-/**
- * Ключевая точка логирования: один access-log на каждый HTTP-запрос.
- * requestId кладётся в MDC до вызова цепочки — структурированный форматтер
- * (logging.structured.format.console=ecs) автоматически добавляет его как
- * отдельное поле JSON во ВСЕ логи, записанные во время обработки этого запроса.
- */
 @Component
 public class RequestLoggingFilter extends OncePerRequestFilter {
 

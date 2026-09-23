@@ -52,7 +52,6 @@ async function apiFetch(path, options) {
       const body = await response.json();
       message = body.message || message;
     } catch (e) {
-      // тело не JSON — оставляем statusText
     }
     throw new Error(message);
   }

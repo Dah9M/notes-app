@@ -30,7 +30,6 @@ public class AuthService {
     }
 
     public User login(LoginRequest request) {
-        // Пароль намеренно нигде не логируется — даже на DEBUG.
         User user = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> {
                     log.warn("Вход отклонён: логин '{}' не найден", request.username());
