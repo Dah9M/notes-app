@@ -7,6 +7,7 @@ import com.notesapp.entity.Note;
 import com.notesapp.service.NoteService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,13 +16,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/notes")
+@RequiredArgsConstructor
 public class NoteController {
 
     private final NoteService noteService;
-
-    public NoteController(NoteService noteService) {
-        this.noteService = noteService;
-    }
 
     @GetMapping
     public List<NoteResponse> findAll(HttpServletRequest request,

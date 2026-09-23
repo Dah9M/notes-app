@@ -1,6 +1,9 @@
 package com.notesapp.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -8,6 +11,9 @@ import java.util.Set;
 
 @Entity
 @Table(name = "notes")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Note {
 
     @Id
@@ -31,7 +37,7 @@ public class Note {
     private LocalDateTime updatedAt;
 
     // EAGER: список заметок сериализуется в JSON сразу после чтения из репозитория,
-    // без Note.tags уже закрытой транзакции доступ к тегам ловил бы LazyInitializationException.
+    // без этого Note.tags за закрытой транзакцией ловил бы LazyInitializationException.
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "note_tags",
@@ -39,9 +45,6 @@ public class Note {
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
     private Set<Tag> tags = new HashSet<>();
-
-    public Note() {
-    }
 
     @PrePersist
     void onCreate() {
@@ -53,49 +56,5 @@ public class Note {
     @PreUpdate
     void onUpdate() {
         this.updatedAt = LocalDateTime.now();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public User getOwner() {
-        return owner;
-    }
-
-    public void setOwner(User owner) {
-        this.owner = owner;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public Set<Tag> getTags() {
-        return tags;
-    }
-
-    public void setTags(Set<Tag> tags) {
-        this.tags = tags;
     }
 }

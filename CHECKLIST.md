@@ -2,7 +2,7 @@
 
 ## 0. Скелет проекта
 - [x] Структура папок backend/ + frontend/
-- [x] pom.xml (Spring Boot 3.3.5, Java 21, Web/JPA/Validation/Actuator/Liquibase/postgresql; без Lombok — конфликтовал с локальной JDK 25, убран целиком для надёжной сборки в любом окружении)
+- [x] pom.xml (Spring Boot 3.3.5, Java 21, Web/JPA/Validation/Actuator/Liquibase/postgresql/Lombok 1.18.42)
 - [x] NotesApplication.java
 - [x] application.yml (конфиг только через env)
 - [x] Заготовка db.changelog-master.yaml
@@ -14,7 +14,7 @@
 - [x] Liquibase changeset: таблица `notes` (id, title, content, owner_id FK, created_at, updated_at)
 - [x] Liquibase changeset: таблица `note_tags` (note_id FK, tag_id FK, PK составной)
 - [x] Подключить changeset'ы в db.changelog-master.yaml
-- [x] Entity-классы: User, Note, Tag (чистый JPA, без Lombok)
+- [x] Entity-классы: User, Note, Tag (JPA + Lombok `@Getter/@Setter/@NoArgsConstructor`)
 - [x] Repository-интерфейсы: UserRepository, NoteRepository, TagRepository
 
 ## 2. Backend — максимально упрощённая идентификация (без токенов и хеширования)
@@ -60,5 +60,5 @@
 - [x] Отчёт.md: основные сущности
 - [x] Отчёт.md: разбор всех 12 факторов (9 закрыто полностью, 3 частично с обоснованием)
 - [x] Финальная проверка README.md (инструкция запуска актуальна)
-- [ ] **Ручная проверка UI в браузере** (см. блок 5) — сделать перед сдачей
+- [x] Lombok починен и возвращён по всему backend (причина падения на JDK 25: (1) с JDK 23+ Maven не находит annotation processor'ы в classpath неявно — нужна явная регистрация через `annotationProcessorPaths`; (2) версии Lombok < 1.18.38 физически несовместимы с внутренним API javac в JDK 24/25 — исправлено обновлением до 1.18.42). Полный CRUD-прогон через curl после возврата — без регрессий
 - [ ] Упаковка проекта в архив

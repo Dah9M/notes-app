@@ -5,17 +5,15 @@ import com.notesapp.dto.RegisterRequest;
 import com.notesapp.entity.User;
 import com.notesapp.exception.ApiException;
 import com.notesapp.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
-
-    public AuthService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     public User register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.username())) {

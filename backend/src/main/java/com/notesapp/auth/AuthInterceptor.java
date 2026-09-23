@@ -3,18 +3,16 @@ package com.notesapp.auth;
 import com.notesapp.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+@RequiredArgsConstructor
 public class AuthInterceptor implements HandlerInterceptor {
 
     public static final String USER_ID_HEADER = "X-User-Id";
     public static final String USER_ID_ATTRIBUTE = "userId";
 
     private final UserRepository userRepository;
-
-    public AuthInterceptor(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {

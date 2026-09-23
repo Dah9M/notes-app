@@ -4,19 +4,17 @@ import com.notesapp.dto.TagRequest;
 import com.notesapp.entity.Tag;
 import com.notesapp.exception.ApiException;
 import com.notesapp.repository.TagRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class TagService {
 
     private final TagRepository tagRepository;
-
-    public TagService(TagRepository tagRepository) {
-        this.tagRepository = tagRepository;
-    }
 
     public List<Tag> findAll() {
         return tagRepository.findAll();

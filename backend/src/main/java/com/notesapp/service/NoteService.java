@@ -7,6 +7,7 @@ import com.notesapp.entity.User;
 import com.notesapp.exception.ApiException;
 import com.notesapp.repository.NoteRepository;
 import com.notesapp.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -15,17 +16,12 @@ import java.util.List;
 import java.util.Set;
 
 @Service
+@RequiredArgsConstructor
 public class NoteService {
 
     private final NoteRepository noteRepository;
     private final UserRepository userRepository;
     private final TagService tagService;
-
-    public NoteService(NoteRepository noteRepository, UserRepository userRepository, TagService tagService) {
-        this.noteRepository = noteRepository;
-        this.userRepository = userRepository;
-        this.tagService = tagService;
-    }
 
     public List<Note> findAll(Long ownerId, String tagFilter) {
         if (tagFilter == null || tagFilter.isBlank()) {
