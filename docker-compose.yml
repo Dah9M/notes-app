@@ -13,8 +13,26 @@ services:
       timeout: 5s
       retries: 10
 
+  # Административная задача (Liquibase-миграции) — отдельный одноразовый процесс,
+  # тем же changelog'ом и той же конфигурацией БД, что у backend, но не встроен в его старт.
+  migrate:
+    image: liquibase/liquibase:4.27
+    volumes:
+      - ./backend/src/main/resources/db/changelog:/liquibase/changelog
+    command:
+      - --changelog-file=db.changelog-master.yaml
+      - --search-path=/liquibase/changelog
+      - --url=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - --username=${DB_USER}
+      - --password=${DB_PASSWORD}
+      - update
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   backend:
     build: ./backend
+    image: notes-app-backend:${APP_VERSION:-dev}
     environment:
       DB_URL: ${DB_URL}
       DB_USER: ${DB_USER}
@@ -24,11 +42,12 @@ services:
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   frontend:
     build: ./frontend
+    image: notes-app-frontend:${APP_VERSION:-dev}
     environment:
       API_BASE_URL: ${API_BASE_URL}
       PORT: 80

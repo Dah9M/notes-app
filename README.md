@@ -1,7 +1,6 @@
 # Notes App
 
 Простое приложение для заметок: Java/Spring Boot backend + PostgreSQL + vanilla JS frontend.
-Первое домашнее задание курса SRE — база для последующих ДЗ (логи, метрики, деплой, балансировка трафика).
 
 ## Стек
 
@@ -17,20 +16,11 @@ backend/    — Spring Boot REST API
 frontend/   — статические HTML/CSS/JS
 docker-compose.yml
 .env.example
-CHECKLIST.md — план реализации
-Отчёт.md      — появится после реализации
 ```
 
-## Запуск (после реализации)
+## Запуск
 
 ```bash
 cp .env.example .env
 docker compose up --build
 ```
-
-Backend: http://localhost:8080
-Frontend: http://localhost:8081
-
-## Статус
-
-См. [CHECKLIST.md](./CHECKLIST.md).
