@@ -1,5 +1,7 @@
 package com.notesapp.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -13,8 +15,12 @@ import java.util.Map;
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
+
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<Map<String, Object>> handleApiException(ApiException ex) {
+        // Само событие (что именно не так) уже залогировано в месте возникновения —
+        // здесь просто конвертация в HTTP-ответ, повторно логировать не нужно.
         return ResponseEntity.status(ex.getStatus()).body(body(ex.getStatus(), ex.getMessage()));
     }
 
@@ -24,7 +30,18 @@ public class ApiExceptionHandler {
                 .findFirst()
                 .map(err -> err.getField() + ": " + err.getDefaultMessage())
                 .orElse("Validation failed");
+        log.warn("Некорректный запрос: {}", message);
         return ResponseEntity.badRequest().body(body(HttpStatus.BAD_REQUEST, message));
+    }
+
+    // Ключевая точка: любое непредвиденное исключение, не пойманное явно выше,
+    // должно попасть в лог на уровне ERROR со стектрейсом — это то, на чём будет
+    // строиться алертинг в следующем ДЗ курса.
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleUnexpected(Exception ex) {
+        log.error("Необработанное исключение при обработке запроса", ex);
+        return ResponseEntity.internalServerError()
+                .body(body(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"));
     }
 
     private Map<String, Object> body(HttpStatus status, String message) {

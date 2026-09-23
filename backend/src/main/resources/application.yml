@@ -22,3 +22,15 @@ management:
     web:
       exposure:
         include: health,info
+
+# Структурированные логи (JSON, Elastic Common Schema) в stdout — без файлов,
+# без сторонних библиотек, только встроенный форматтер Spring Boot 3.4+.
+# requestId/userId прокидываются через MDC (см. RequestLoggingFilter, AuthInterceptor)
+# и попадают в каждую JSON-строку лога автоматически.
+logging:
+  structured:
+    format:
+      console: ecs
+  level:
+    root: INFO
+    com.notesapp: DEBUG
