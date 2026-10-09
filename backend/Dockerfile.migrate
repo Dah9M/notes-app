@@ -1,0 +1,2 @@
+FROM liquibase/liquibase:4.27
+COPY src/main/resources/db/changelog /liquibase/changelog

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend
+data:
+  API_BASE_URL: "http://192.168.49.2:30080"
+  PORT: "80"
