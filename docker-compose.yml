@@ -37,6 +37,10 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       SERVER_PORT: ${SERVER_PORT}
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
+      LOG_LEVEL_ROOT: ${LOG_LEVEL_ROOT:-INFO}
+      LOG_LEVEL_APP: ${LOG_LEVEL_APP:-INFO}
+      APP_VERSION: ${APP_VERSION:-dev}
+      DEPLOYMENT_ENVIRONMENT: ${DEPLOYMENT_ENVIRONMENT:-local}
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
     depends_on:
@@ -49,6 +53,8 @@ services:
     environment:
       API_BASE_URL: ${API_BASE_URL}
       PORT: 80
+      APP_VERSION: ${APP_VERSION:-dev}
+      DEPLOYMENT_ENVIRONMENT: ${DEPLOYMENT_ENVIRONMENT:-local}
     ports:
       - "8081:80"
     depends_on:

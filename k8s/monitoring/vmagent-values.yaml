@@ -1,0 +1,78 @@
+fullnameOverride: vmagent
+replicaCount: 1
+
+service:
+  enabled: true
+  type: ClusterIP
+
+rbac:
+  create: true
+
+serviceAccount:
+  create: true
+
+remoteWrite:
+  - url: http://vm-single.monitoring.svc.cluster.local:8428/api/v1/write
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    memory: 256Mi
+
+config:
+  global:
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  scrape_configs:
+    - job_name: notes-pods
+
+      kubernetes_sd_configs:
+        - role: pod
+          namespaces:
+            names:
+              - notes
+
+      relabel_configs:
+        - action: keep
+          source_labels:
+            - __meta_kubernetes_pod_annotation_prometheus_io_scrape
+          regex: "true"
+
+        - action: keep
+          source_labels:
+            - __meta_kubernetes_pod_phase
+          regex: Running
+
+        - action: drop
+          source_labels:
+            - __meta_kubernetes_pod_container_init
+          regex: "true"
+
+        - action: keep_if_equal
+          source_labels:
+            - __meta_kubernetes_pod_annotation_prometheus_io_port
+            - __meta_kubernetes_pod_container_port_number
+
+        - action: replace
+          source_labels:
+            - __meta_kubernetes_pod_annotation_prometheus_io_path
+          regex: "(.+)"
+          target_label: __metrics_path__
+
+        - action: replace
+          source_labels:
+            - __meta_kubernetes_namespace
+          target_label: namespace
+
+        - action: replace
+          source_labels:
+            - __meta_kubernetes_pod_name
+          target_label: pod
+
+        - action: replace
+          source_labels:
+            - __meta_kubernetes_pod_container_name
+          target_label: container

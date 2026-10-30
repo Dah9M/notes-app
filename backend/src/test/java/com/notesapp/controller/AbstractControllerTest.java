@@ -25,6 +25,7 @@ abstract class AbstractControllerTest {
         registry.add("spring.datasource.password", POSTGRES::getPassword);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
         registry.add("frontend.origin", () -> "http://localhost:8081");
+        registry.add("management.server.port", () -> "0");
     }
 
     @Autowired

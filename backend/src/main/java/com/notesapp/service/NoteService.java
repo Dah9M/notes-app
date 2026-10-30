@@ -5,6 +5,7 @@ import com.notesapp.entity.Note;
 import com.notesapp.entity.Tag;
 import com.notesapp.entity.User;
 import com.notesapp.exception.ApiException;
+import com.notesapp.metrics.BusinessMetrics;
 import com.notesapp.repository.NoteRepository;
 import com.notesapp.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,19 +27,26 @@ public class NoteService {
     private final NoteRepository noteRepository;
     private final UserRepository userRepository;
     private final TagService tagService;
+    private final BusinessMetrics metrics;
 
     public List<Note> findAll(Long ownerId, String tagFilter) {
-        log.debug("Получение списка заметок: ownerId={} tagFilter={}", ownerId, tagFilter);
-        if (tagFilter == null || tagFilter.isBlank()) {
-            return noteRepository.findByOwnerIdOrderByUpdatedAtDesc(ownerId);
-        }
-        return noteRepository.findByOwnerIdAndTagsNameOrderByUpdatedAtDesc(ownerId, tagFilter);
+        boolean filtered = tagFilter != null && !tagFilter.isBlank();
+        List<Note> notes = filtered
+                ? noteRepository.findByOwnerIdAndTagsNameOrderByUpdatedAtDesc(ownerId, tagFilter)
+                : noteRepository.findByOwnerIdOrderByUpdatedAtDesc(ownerId);
+        log.atDebug().addKeyValue("event.action", "note.list")
+                .addKeyValue("ownerId", ownerId).addKeyValue("filtered", filtered)
+                .addKeyValue("resultCount", notes.size()).log("Получен список заметок");
+        return notes;
     }
 
     public Note findOne(Long id, Long ownerId) {
+        log.atTrace().addKeyValue("event.action", "note.lookup")
+                .addKeyValue("noteId", id).addKeyValue("ownerId", ownerId).log("Поиск заметки владельца");
         return noteRepository.findByIdAndOwnerId(id, ownerId)
                 .orElseThrow(() -> {
-                    log.debug("Заметка не найдена: id={} ownerId={}", id, ownerId);
+                    log.atDebug().addKeyValue("event.action", "note.not_found")
+                            .addKeyValue("noteId", id).addKeyValue("ownerId", ownerId).log("Заметка не найдена");
                     return new ApiException(HttpStatus.NOT_FOUND, "Note not found");
                 });
     }
@@ -51,7 +59,10 @@ public class NoteService {
         note.setOwner(owner);
         note.setTags(resolveTags(request.tags()));
         note = noteRepository.save(note);
-        log.info("Заметка создана: id={} ownerId={} tags={}", note.getId(), ownerId, request.tags());
+        metrics.noteCreated();
+        log.atInfo().addKeyValue("event.action", "note.created")
+                .addKeyValue("noteId", note.getId()).addKeyValue("ownerId", ownerId)
+                .addKeyValue("tagCount", note.getTags().size()).log("Заметка создана");
         return note;
     }
 
@@ -61,14 +72,19 @@ public class NoteService {
         note.setContent(request.content());
         note.setTags(resolveTags(request.tags()));
         note = noteRepository.save(note);
-        log.info("Заметка обновлена: id={} ownerId={}", note.getId(), ownerId);
+        metrics.noteUpdated();
+        log.atInfo().addKeyValue("event.action", "note.updated")
+                .addKeyValue("noteId", note.getId()).addKeyValue("ownerId", ownerId)
+                .addKeyValue("tagCount", note.getTags().size()).log("Заметка обновлена");
         return note;
     }
 
     public void delete(Long id, Long ownerId) {
         Note note = findOne(id, ownerId);
         noteRepository.delete(note);
-        log.info("Заметка удалена: id={} ownerId={}", id, ownerId);
+        metrics.noteDeleted();
+        log.atInfo().addKeyValue("event.action", "note.deleted")
+                .addKeyValue("noteId", id).addKeyValue("ownerId", ownerId).log("Заметка удалена");
     }
 
     private Set<Tag> resolveTags(Set<String> names) {
@@ -81,6 +97,9 @@ public class NoteService {
                 tags.add(tagService.findOrCreate(name.trim()));
             }
         }
+        log.atTrace().addKeyValue("event.action", "note.tags.resolved")
+                .addKeyValue("inputCount", names.size()).addKeyValue("tagCount", tags.size())
+                .log("Теги заметки разрешены");
         return tags;
     }
 }

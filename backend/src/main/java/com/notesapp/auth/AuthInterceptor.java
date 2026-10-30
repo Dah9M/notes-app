@@ -23,6 +23,7 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            log.atTrace().addKeyValue("event.action", "auth.preflight").log("Пропущена проверка preflight");
             return true;
         }
 
@@ -30,18 +31,21 @@ public class AuthInterceptor implements HandlerInterceptor {
         Long userId = parse(header);
 
         if (userId == null) {
-            log.warn("Отклонён запрос без корректного заголовка X-User-Id: {} {}", request.getMethod(), request.getRequestURI());
+            log.atInfo().addKeyValue("event.action", "auth.rejected")
+                    .addKeyValue("reason", "invalid_user_header").log("Запрос отклонён");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return false;
         }
         if (!userRepository.existsById(userId)) {
-            log.warn("Отклонён запрос: пользователь с id={} не найден: {} {}", userId, request.getMethod(), request.getRequestURI());
+            log.atInfo().addKeyValue("event.action", "auth.rejected")
+                    .addKeyValue("reason", "unknown_user").log("Запрос отклонён");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return false;
         }
 
         request.setAttribute(USER_ID_ATTRIBUTE, userId);
         MDC.put(USER_ID_MDC_KEY, String.valueOf(userId));
+        log.atTrace().addKeyValue("event.action", "auth.accepted").log("Пользователь проверен");
         return true;
     }
 

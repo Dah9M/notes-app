@@ -5,6 +5,7 @@ import com.notesapp.entity.Note;
 import com.notesapp.entity.Tag;
 import com.notesapp.entity.User;
 import com.notesapp.exception.ApiException;
+import com.notesapp.metrics.BusinessMetrics;
 import com.notesapp.repository.NoteRepository;
 import com.notesapp.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,11 +36,14 @@ class NoteServiceTest {
     @Mock
     private TagService tagService;
 
+    @Mock
+    private BusinessMetrics metrics;
+
     private NoteService noteService;
 
     @BeforeEach
     void setUp() {
-        noteService = new NoteService(noteRepository, userRepository, tagService);
+        noteService = new NoteService(noteRepository, userRepository, tagService, metrics);
     }
 
     @Test
@@ -89,6 +93,7 @@ class NoteServiceTest {
         assertThat(result.getOwner()).isSameAs(owner);
         assertThat(result.getTags()).extracting(Tag::getName).containsExactlyInAnyOrder("work", "idea");
         verify(tagService, never()).findOrCreate("");
+        verify(metrics).noteCreated();
     }
 
     @Test
@@ -111,6 +116,7 @@ class NoteServiceTest {
                 .satisfies(ex -> assertThat(((ApiException) ex).getStatus()).isEqualTo(HttpStatus.NOT_FOUND));
 
         verify(noteRepository, never()).save(any());
+        verifyNoInteractions(metrics);
     }
 
     @Test
@@ -126,6 +132,7 @@ class NoteServiceTest {
         assertThat(result.getTitle()).isEqualTo("New");
         assertThat(result.getContent()).isEqualTo("Body");
         assertThat(result.getTags()).extracting(Tag::getName).containsExactly("new-tag");
+        verify(metrics).noteUpdated();
     }
 
     @Test
@@ -136,6 +143,7 @@ class NoteServiceTest {
         noteService.delete(1L, 1L);
 
         verify(noteRepository).delete(existing);
+        verify(metrics).noteDeleted();
     }
 
     @Test
@@ -145,5 +153,6 @@ class NoteServiceTest {
         assertThatThrownBy(() -> noteService.delete(1L, 1L)).isInstanceOf(ApiException.class);
 
         verify(noteRepository, never()).delete(any());
+        verifyNoInteractions(metrics);
     }
 }

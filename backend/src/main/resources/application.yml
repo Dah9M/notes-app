@@ -18,15 +18,29 @@ frontend:
   origin: ${FRONTEND_ORIGIN}
 
 management:
+  server:
+    port: ${MANAGEMENT_SERVER_PORT:8082}
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+        add-additional-paths: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
 logging:
   structured:
     format:
-      console: ecs
+      console: com.notesapp.logging.JsonLogFormatter
   level:
-    root: INFO
-    com.notesapp: DEBUG
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.notesapp: ${LOG_LEVEL_APP:INFO}
+
+app:
+  version: ${APP_VERSION:@project.version@}
+  environment: ${DEPLOYMENT_ENVIRONMENT:local}

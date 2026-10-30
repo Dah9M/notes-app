@@ -4,6 +4,7 @@ import com.notesapp.dto.LoginRequest;
 import com.notesapp.dto.RegisterRequest;
 import com.notesapp.entity.User;
 import com.notesapp.exception.ApiException;
+import com.notesapp.metrics.BusinessMetrics;
 import com.notesapp.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,11 +26,14 @@ class AuthServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private BusinessMetrics metrics;
+
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
-        authService = new AuthService(userRepository);
+        authService = new AuthService(userRepository, metrics);
     }
 
     @Test
@@ -46,6 +50,7 @@ class AuthServiceTest {
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getUsername()).isEqualTo("alice");
         verify(userRepository).save(any(User.class));
+        verify(metrics).registrationSucceeded();
     }
 
     @Test
@@ -57,6 +62,7 @@ class AuthServiceTest {
                 .satisfies(ex -> assertThat(((ApiException) ex).getStatus()).isEqualTo(HttpStatus.CONFLICT));
 
         verify(userRepository, never()).save(any());
+        verifyNoInteractions(metrics);
     }
 
     @Test
@@ -68,6 +74,7 @@ class AuthServiceTest {
         User result = authService.login(new LoginRequest("alice", "secret"));
 
         assertThat(result).isSameAs(stored);
+        verify(metrics).loginSucceeded();
     }
 
     @Test
@@ -77,6 +84,7 @@ class AuthServiceTest {
         assertThatThrownBy(() -> authService.login(new LoginRequest("ghost", "secret")))
                 .isInstanceOf(ApiException.class)
                 .satisfies(ex -> assertThat(((ApiException) ex).getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED));
+        verifyNoInteractions(metrics);
     }
 
     @Test
@@ -87,5 +95,6 @@ class AuthServiceTest {
         assertThatThrownBy(() -> authService.login(new LoginRequest("alice", "wrong")))
                 .isInstanceOf(ApiException.class)
                 .satisfies(ex -> assertThat(((ApiException) ex).getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED));
+        verifyNoInteractions(metrics);
     }
 }

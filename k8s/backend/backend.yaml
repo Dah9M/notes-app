@@ -18,15 +18,27 @@ spec:
     metadata:
       labels:
         app: backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8082"
+        prometheus.io/path: "/actuator/prometheus"
     spec:
       containers:
         - name: backend
-          image: backend:0.0.1
+          image: backend:0.0.2
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
                 name: backend
           env:
+            - name: APP_VERSION
+              value: "0.0.2"
+            - name: DEPLOYMENT_ENVIRONMENT
+              value: "minikube"
+            - name: K8S_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
@@ -41,6 +53,9 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+            - name: management
+              containerPort: 8082
+              protocol: TCP
           resources:
             requests:
               cpu: 250m
@@ -50,16 +65,16 @@ spec:
           startupProbe:
             httpGet:
               path: /actuator/health/liveness
-              port: http
+              port: management
             periodSeconds: 5
             failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
-              port: http
+              port: management
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
-              port: http
+              port: management
             periodSeconds: 5

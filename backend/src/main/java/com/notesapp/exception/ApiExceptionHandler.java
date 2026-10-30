@@ -19,6 +19,10 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<Map<String, Object>> handleApiException(ApiException ex) {
+        var event = ex.getStatus().is5xxServerError() ? log.atError() : log.atDebug();
+        event.addKeyValue("event.action", "api.rejected")
+                .addKeyValue("http.response.status_code", ex.getStatus().value())
+                .log("Запрос завершён прикладной ошибкой");
         return ResponseEntity.status(ex.getStatus()).body(body(ex.getStatus(), ex.getMessage()));
     }
 
@@ -28,13 +32,19 @@ public class ApiExceptionHandler {
                 .findFirst()
                 .map(err -> err.getField() + ": " + err.getDefaultMessage())
                 .orElse("Validation failed");
-        log.warn("Некорректный запрос: {}", message);
+        log.atDebug().addKeyValue("event.action", "api.validation_failed")
+                .addKeyValue("http.response.status_code", 400)
+                .addKeyValue("invalidFields", ex.getBindingResult().getFieldErrors().stream()
+                        .map(error -> error.getField()).distinct().toList())
+                .log("Запрос не прошёл валидацию");
         return ResponseEntity.badRequest().body(body(HttpStatus.BAD_REQUEST, message));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleUnexpected(Exception ex) {
-        log.error("Необработанное исключение при обработке запроса", ex);
+        log.atError().addKeyValue("event.action", "api.failed")
+                .addKeyValue("http.response.status_code", 500)
+                .setCause(ex).log("Необработанное исключение при обработке запроса");
         return ResponseEntity.internalServerError()
                 .body(body(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"));
     }

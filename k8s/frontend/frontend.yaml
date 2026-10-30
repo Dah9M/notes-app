@@ -26,6 +26,15 @@ spec:
           envFrom:
             - configMapRef:
                 name: frontend
+          env:
+            - name: APP_VERSION
+              value: "0.0.1"
+            - name: DEPLOYMENT_ENVIRONMENT
+              value: "minikube"
+            - name: K8S_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           ports:
             - name: http
               containerPort: 80

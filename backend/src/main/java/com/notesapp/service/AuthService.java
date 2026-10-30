@@ -4,6 +4,7 @@ import com.notesapp.dto.LoginRequest;
 import com.notesapp.dto.RegisterRequest;
 import com.notesapp.entity.User;
 import com.notesapp.exception.ApiException;
+import com.notesapp.metrics.BusinessMetrics;
 import com.notesapp.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -18,28 +19,38 @@ public class AuthService {
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private final UserRepository userRepository;
+    private final BusinessMetrics metrics;
 
     public User register(RegisterRequest request) {
+        log.atDebug().addKeyValue("event.action", "user.register.started").log("Начата регистрация");
         if (userRepository.existsByUsername(request.username())) {
-            log.warn("Регистрация отклонена: логин '{}' уже занят", request.username());
+            log.atInfo().addKeyValue("event.action", "user.register.rejected")
+                    .addKeyValue("reason", "username_taken").log("Регистрация отклонена");
             throw new ApiException(HttpStatus.CONFLICT, "Username is already taken");
         }
         User user = userRepository.save(new User(request.username(), request.password()));
-        log.info("Пользователь зарегистрирован: id={} username={}", user.getId(), user.getUsername());
+        metrics.registrationSucceeded();
+        log.atInfo().addKeyValue("event.action", "user.register.succeeded")
+                .addKeyValue("userId", user.getId()).log("Пользователь зарегистрирован");
         return user;
     }
 
     public User login(LoginRequest request) {
+        log.atDebug().addKeyValue("event.action", "user.login.started").log("Начат вход");
         User user = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> {
-                    log.warn("Вход отклонён: логин '{}' не найден", request.username());
+                    log.atInfo().addKeyValue("event.action", "user.login.rejected")
+                            .addKeyValue("reason", "invalid_credentials").log("Вход отклонён");
                     return new ApiException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
                 });
         if (!user.getPassword().equals(request.password())) {
-            log.warn("Вход отклонён: неверный пароль для логина '{}'", request.username());
+            log.atInfo().addKeyValue("event.action", "user.login.rejected")
+                    .addKeyValue("reason", "invalid_credentials").log("Вход отклонён");
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
         }
-        log.info("Пользователь вошёл: id={} username={}", user.getId(), user.getUsername());
+        metrics.loginSucceeded();
+        log.atInfo().addKeyValue("event.action", "user.login.succeeded")
+                .addKeyValue("userId", user.getId()).log("Пользователь вошёл");
         return user;
     }
 }

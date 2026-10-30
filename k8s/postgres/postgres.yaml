@@ -14,6 +14,10 @@ spec:
     metadata:
       labels:
         app: postgres
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9187"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
         - name: postgres
@@ -30,6 +34,34 @@ spec:
           volumeMounts:
             - name: pgdata
               mountPath: /var/lib/postgresql/data
+        - name: postsgres-exporter
+          image: quay.io/prometheuscommunity/postgres-exporter:v0.18.1
+          args:
+            - --log.format=json
+          env:
+            - name: DATA_SOURCE_URI
+              value: "localhost:5432/notesdb?sslmode=disable"
+            - name: DATA_SOURCE_USER
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: postgres-exporter-secret
+            - name: DATA_SOURCE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-exporter-secret
+                  key: password
+          ports:
+            - name: metrics
+              containerPort: 9187
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+
   volumeClaimTemplates:
     - metadata:
         name: pgdata

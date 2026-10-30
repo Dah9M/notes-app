@@ -1,0 +1,19 @@
+server:
+  fullnameOverride: vm-single
+  replicaCount: 1
+  retentionPeriod: "7d"
+
+  persistentVolume:
+    enabled: true
+    storageClassName: standard
+    size: 5Gi
+
+  service:
+    type: ClusterIP
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1Gi

@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: notes-log-alerts
+  namespace: logging
+data:
+  alerts.yaml: |
+    groups:
+      - name: notes-logs
+        type: vlogs
+        interval: 15s
+        rules:
+          - alert: NotesFailedRequests
+            expr: '_time:15m kubernetes.pod_namespace:=notes event.outcome:=failure | stats by (service.name) count() as failures | filter failures:>0'
+            for: 30s
+            labels:
+              severity: warning
+            annotations:
+              summary: 'Неуспешные запросы'
+              description: '{{ index $labels "service.name" }}: {{ $value }} неуспешные запросы за 15 минут.'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notes-vmalert
+  namespace: logging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notes-vmalert
+  template:
+    metadata:
+      labels:
+        app: notes-vmalert
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: vmalert
+          image: victoriametrics/vmalert:v1.122.0
+          args:
+            - -datasource.url=http://vls-victoria-logs-single-server.logging.svc.cluster.local:9428
+            - -rule=/config/alerts.yaml
+            - -notifier.blackhole
+            - -loggerFormat=json
+            - -httpListenAddr=:8880
+          ports:
+            - name: http
+              containerPort: 8880
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+          volumeMounts:
+            - name: rules
+              mountPath: /config
+              readOnly: true
+      volumes:
+        - name: rules
+          configMap:
+            name: notes-log-alerts
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notes-vmalert
+  namespace: logging
+spec:
+  selector:
+    app: notes-vmalert
+  ports:
+    - name: http
+      port: 8880
+      targetPort: http

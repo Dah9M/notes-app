@@ -1,0 +1,36 @@
+remoteWrite:
+  - url: http://vls-victoria-logs-single-server.logging.svc.cluster.local:9428
+    maxDiskUsagePerURL: 1GiB
+
+collector:
+  excludeFilter: 'NOT (kubernetes.pod_namespace:=notes AND kubernetes.container_name:in(backend,frontend))'
+
+  timeField:
+    - timestamp
+
+  msgField:
+    - message
+
+  streamFields:
+    - kubernetes.pod_namespace
+    - kubernetes.pod_name
+    - kubernetes.container_name
+
+  includePodLabels: true
+  includePodAnnotations: false
+
+extraArgs:
+  tmpDataPath: /collector-data
+
+persistence:
+  volume:
+    hostPath:
+      path: /var/lib/notes-vlagent
+      type: DirectoryOrCreate
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    memory: 256Mi
